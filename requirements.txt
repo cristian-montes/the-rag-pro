@@ -3,3 +3,10 @@ transformers
 sentence-transformers
 scikit-learn
 numpy
+faiss-cpu
+rank-bm25
+pandas
+pymupdf
+beautifulsoup4
+wikipedia-api
+requests

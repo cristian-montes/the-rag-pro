@@ -1,1 +1,0 @@
-"Quantization reduces the size of neural networks by converting floating-point numbers into lower-bit representations." > data/corpus/sample.txt
