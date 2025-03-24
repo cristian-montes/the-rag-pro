@@ -1,7 +1,7 @@
 import os
 import fitz
 
-def load_pdfs(path='./data/nasa_reports'):
+def load_pdfs(path):
      corpus = []
      for file in os.listdir(path):
         if file.endswith(".pdf"):

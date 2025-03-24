@@ -2,7 +2,7 @@
 import os
 import pandas as pd
 
-def load_csv(data_path="../data"):
+def load_csv(data_path):
     csv_texts = []
     for file in os.listdir(data_path):
         if file.endswith(".csv"):
@@ -16,6 +16,6 @@ def load_csv(data_path="../data"):
     return csv_texts
 
 if __name__ == "__main__":
-    csv_dir = 'data/csv'
+    csv_dir = 'data/csvs'
     csv_texts = load_csv(csv_dir)
     print(f"Loaded {len(csv_texts)} CSV files.")
