@@ -5,7 +5,7 @@ import numpy as np
 from rank_bm25 import BM25Okapi
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-INDEX_DIR = "../index"
+INDEX_DIR = "./index"
 
 # Ensure index directory exists
 os.makedirs(INDEX_DIR, exist_ok=True)

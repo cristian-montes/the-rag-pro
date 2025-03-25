@@ -45,18 +45,22 @@ def scrape_nasa_selenium():
 
     return nasa_texts
 
-
 def get_nasa_data():
     if os.path.exists(CACHE_FILE):
         print("Loading cached NASA data")
         with open(CACHE_FILE, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+
+        # Ensure data is returned as a list
+        return list(data) if isinstance(data, dict) else data
     else:
         print("Fetching new NASA data...")
         data = scrape_nasa_selenium()
-        os.makedirs("data/nasa", exist_ok=True)
+        
+        os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
         with open(CACHE_FILE, "w") as f:
             json.dump(data, f, indent=4)
+
         return data
 
 

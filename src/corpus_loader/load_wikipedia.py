@@ -26,7 +26,8 @@ def get_wikipedia_data(titles):
     if os.path.exists(CACHE_FILE):
         print("Loading cached Wikipedia data...")
         with open(CACHE_FILE, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+        return list(data.values()) if isinstance(data, dict) else data
     else:
         print("Fetching new Wikipedia data...")
         data = fetch_wikipedia_articles(titles)
@@ -37,7 +38,7 @@ def get_wikipedia_data(titles):
         with open(CACHE_FILE, "w") as f:
             json.dump(data, f, indent=4)
 
-        return data
+        return list(data.values)
 
 # Example usage
 if __name__ == "__main__":
