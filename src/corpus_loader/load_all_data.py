@@ -1,12 +1,11 @@
 import os
 import glob
 import csv
-from load_pdfs import load_pdfs
-from load_csv import load_csv
-from scrape_nasa import get_nasa_data
-from load_wikipedia import get_wikipedia_data
+from .load_pdfs import load_pdfs
+from .load_csv import load_csv
+from .scrape_nasa import get_nasa_data
+from .load_wikipedia import get_wikipedia_data
 
-# Define the paths to your raw data sources
 PDF_DIR = "data/pdfs"
 CSV_DIR = "data/csvs"
 WIKIPEDIA_TITLES = ['Mars', 'Apollo_program', 'SpaceX', 'Hubble_Space_Telescope']
@@ -45,7 +44,7 @@ def load_all_data():
     corpus.extend(load_csv_data())   # Add CSV data
     corpus.extend(load_wikipedia_data())  # Add Wikipedia data
     
-    if NASA_DATA:  # Optionally load NASA data
+    if NASA_DATA:
         corpus.extend(load_nasa_data())
 
     return corpus

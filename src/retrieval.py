@@ -5,7 +5,7 @@ from rank_bm25 import BM25Okapi
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 
-INDEX_DIR = "../index"
+INDEX_DIR = "./index"
 
 def load_bm25_index():
     bm25_path = os.path.join(INDEX_DIR, "bm25_index.pkl")

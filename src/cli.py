@@ -2,8 +2,9 @@
 
 from load_mistral import load_mistral
 from retrieval import retrieve_bm25, retrieve_faiss, load_bm25_index, load_faiss_index
-from corpus_loader import preprocess  # Import your preprocess function
-from corpus_loader import load_all_data # If you want to load data, otherwise use corpus_loader
+from corpus_loader.preprocess import preprocess
+from corpus_loader.load_all_data import load_all_data
+from corpus_loader.corpus_loader import main as corpus_loader_main
 import re
 
 def preprocess_query(query):
@@ -13,6 +14,9 @@ def preprocess_query(query):
     return query
 
 def main():
+    # Load the corpus,indexes
+    corpus_loader_main()
+    
     # Load the model and tokenizer
     model, tokenizer = load_mistral()
 
@@ -40,11 +44,15 @@ def main():
         faiss_results, faiss_distances = retrieve_faiss(cleaned_query, faiss_index, vectorizer, preprocessed_corpus, top_k=5)
         
         # Combine or choose best context
-        context = ""
-        for idx in bm25_results[:5]:
-            context += preprocessed_corpus[idx] + "\n"
-        
-        print(f"\nRetrieved context (BM25 top results):\n{context[:500]}...")  # Show the first 500 chars of the context
+        # context = ""
+        # for idx in bm25_results[:5]:
+        #     context += preprocessed_corpus[idx] + "\n"
+        # print(f"\nRetrieved context (BM25 top results):\n{context[:500]}...")  # Show the first 500 chars of the context
+
+        # Combine top results from both retrieval methos
+        top_resutls = set(bm25_results[:3]) | set(faiss_results[:3])
+        context = "\n".join([corpus[idx] for idx in top_resutls])
+        print(f"\nRetrieved Context:\n{context}")
 
         # Pass context to the model
         inputs = tokenizer(query, return_tensors="pt").to("mps")

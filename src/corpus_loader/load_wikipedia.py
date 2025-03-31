@@ -38,7 +38,7 @@ def get_wikipedia_data(titles):
         with open(CACHE_FILE, "w") as f:
             json.dump(data, f, indent=4)
 
-        return list(data.values)
+        return list(data.values())
 
 # Example usage
 if __name__ == "__main__":
