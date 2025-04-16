@@ -23,19 +23,20 @@ def select_best_result(bm25_results, bm25_scores, faiss_results, faiss_distances
     else:
         return best_faiss_idx, "FAISS"
 
-# 🟨 Updated this function: we no longer use a tokenizer from Hugging Face
-def combine_context_and_query(query, best_result_idx, retrieval_method, corpus, max_tokens=512):
-    """Combines the best retrieved context with the query."""
+def combine_context_and_query(query, best_result_idx, retrieval_method, corpus, tokenizer, max_tokens=512):
+    """Combines the best retrieved context with the query while enforcing token limits."""
     best_context = corpus[best_result_idx]
-    # (Optional) Limit context length to roughly fit in prompt
-    if len(best_context.split()) > max_tokens:
-        best_context = " ".join(best_context.split()[:max_tokens])
+    context_tokens = tokenizer.encode(best_context, add_special_tokens=False)
+    
+    if len(context_tokens) > max_tokens:
+        context_tokens = context_tokens[:max_tokens]
+    best_context = tokenizer.decode(context_tokens)
     
     return f"Question: {query}\nContext (from {retrieval_method}): {best_context}\nAnswer:"
 
 def main():
     corpus_loader_main()
-    model = load_mistral()  # 🟨 Now returns an Llama model instance from llama-cpp-python
+    model, tokenizer = load_mistral()
     bm25 = load_bm25_index()
     faiss_index, vectorizer = load_faiss_index()
     corpus = load_all_data()
@@ -53,17 +54,13 @@ def main():
         
         best_result_idx, retrieval_method = select_best_result(bm25_results, bm25_scores, faiss_results, faiss_distances)
         
-        combined_input = combine_context_and_query(query, best_result_idx, retrieval_method, corpus)
-
-        # 🟨 Replaced HuggingFace tokenization + model.generate with llama-cpp-python's call
-        response = model(
-            combined_input,
-            max_tokens=100,
-            stop=["</s>", "###", "Answer:"],
-            echo=False
-        )
-
-        print(f"\nModel Response ({retrieval_method} used):\n{response['choices'][0]['text'].strip()}\n")
+        combined_input = combine_context_and_query(query, best_result_idx, retrieval_method, corpus, tokenizer)
+        
+        inputs = tokenizer(combined_input, return_tensors="pt").to("mps")
+        outputs = model.generate(**inputs, max_new_tokens=100)
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        
+        print(f"\nModel Response ({retrieval_method} used):\n{response}\n")
 
 if __name__ == "__main__":
     main()

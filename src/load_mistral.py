@@ -1,86 +1,21 @@
+from llama_cpp import Llama
 import os
-from dotenv import load_dotenv
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import torch.quantization as quantization
-
-load_dotenv()
-HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN_v03")
 
 def load_mistral():
-    # Step 1: Confirm MPS availability
-    print(f"PyTorch version: {torch.__version__}")
-    print(f"Is MPS available? {torch.backends.mps.is_available()}")
+    model_path = "/Users/cristianmontes/Documents/dev/llama.cpp/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 
-    # Step 2: Set MPS as the default device
-    torch.set_default_device("mps")
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model file not found at {model_path}. Please make sure it's downloaded.")
 
-    # Step 3: Load Mistral model and tokenizer
-    #model_id = "mistralai/Mistral-7B-v0.1"
-    model_id = "mistralai/Mistral-7B-Instruct-v0.3" # NEWEST MODEL REQUIRES USER TOKEN.
-
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_id,
-        token=HUGGINGFACE_TOKEN
+    # Load the model with desired config
+    model = Llama(
+        model_path=model_path,
+        n_ctx=4096,        # Max context tokens --> Longer contex for complex questions
+        n_threads=8,       # Logical cores
+        n_gpu_layers=35,   # Pushes most transformer layer to GPU via metal =  faster inference.
+        use_mlock=True,    # Locks model into RAM - avoids slowdown from memory
+        use_mmap=True,     # Speeds up loading model from disk.
+        verbose=False,     # Keeps CLI clean. Can be set to "True" for debug.
     )
-
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        token=HUGGINGFACE_TOKEN, 
-        torch_dtype=torch.float16, 
-        device_map="mps"
-    )
-    
-    return model, tokenizer
-
-def apply_qat(model):
-    # Step 4: Apply Quantization-Aware Training (QAT)
-    model.train()
-
-    # Set the quantization configuration for the model
-    model.qconfig = quantization.get_default_qat_qconfig('fbgemm')  # Or 'qnnpack' for mobile devices
-    
-    # Prepare the model for QAT
-    quantization.prepare_qat(model, inplace=True)
 
     return model
-
-def train_qat(model, tokenizer):
-    # This is just a skeleton. You would need a proper training loop here.
-    # Example: Fine-tuning the model on your dataset (not shown in this code).
-    pass
-
-def convert_and_save_quantized_model(model):
-    # Step 5: Convert the model to a quantized version after QAT
-    quantized_model = quantization.convert(model, inplace=False)
-
-    # Save the quantized model
-    quantized_model.save_pretrained("./quantized_mistral_model")
-
-def main():
-    # Step 1: Load Mistral model and tokenizer
-    model, tokenizer = load_mistral()
-
-    # Step 2: Apply Quantization-Aware Training (QAT)
-    model = apply_qat(model)
-    
-    # Step 3: Fine-tune the model (dummy step here for illustration)
-    train_qat(model, tokenizer)
-
-    # Step 4: Convert and save the quantized model after QAT
-    convert_and_save_quantized_model(model)
-
-    print("Mistral model with QAT has been trained and saved!")
-
-    # Step 5: Test the model (Inference)
-    prompt = "Explain the process of quantization in machine learning."
-    inputs = tokenizer(prompt, return_tensors="pt").to("mps")
-
-    outputs = model.generate(**inputs, max_new_tokens=100)
-
-    # Display the output
-    print("\nGenerated Response:")
-    print(tokenizer.decode(outputs[0], skip_special_tokens=True))
-
-if __name__ == "__main__":
-    main()
