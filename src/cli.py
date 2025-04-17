@@ -23,8 +23,7 @@ def select_best_result(bm25_results, bm25_scores, faiss_results, faiss_distances
     else:
         return best_faiss_idx, "FAISS"
 
-# 🟨 Updated this function: we no longer use a tokenizer from Hugging Face
-def combine_context_and_query(query, best_result_idx, retrieval_method, corpus, max_tokens=512):
+def combine_context_and_query(query, best_result_idx, retrieval_method, corpus, max_tokens=2000):
     """Combines the best retrieved context with the query."""
     best_context = corpus[best_result_idx]
     # (Optional) Limit context length to roughly fit in prompt
@@ -35,7 +34,7 @@ def combine_context_and_query(query, best_result_idx, retrieval_method, corpus, 
 
 def main():
     corpus_loader_main()
-    model = load_mistral()  # 🟨 Now returns an Llama model instance from llama-cpp-python
+    model = load_mistral()
     bm25 = load_bm25_index()
     faiss_index, vectorizer = load_faiss_index()
     corpus = load_all_data()
@@ -45,6 +44,11 @@ def main():
         query = input("\nEnter your question (or type 'exit' to quit): ")
         if query.lower() == "exit":
             break
+
+        #trims and checks for non-empty meaningful content
+        if not query.strip() or not re.search(r'\w', query):
+            print("⚠️  Please enter a valid question with actual words.")
+            continue
         
         cleaned_query = preprocess_query(query)
         print("\nRetrieving context...")
@@ -55,7 +59,6 @@ def main():
         
         combined_input = combine_context_and_query(query, best_result_idx, retrieval_method, corpus)
 
-        # 🟨 Replaced HuggingFace tokenization + model.generate with llama-cpp-python's call
         response = model(
             combined_input,
             max_tokens=100,
