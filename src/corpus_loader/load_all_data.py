@@ -1,6 +1,4 @@
 import os
-import glob
-import csv
 from .load_pdfs import load_pdfs
 from .load_csv import load_csv
 from .scrape_nasa import get_nasa_data
@@ -9,47 +7,51 @@ from .load_wikipedia import get_wikipedia_data
 PDF_DIR = "data/pdfs"
 CSV_DIR = "data/csvs"
 WIKIPEDIA_TITLES = ['Mars', 'Apollo_program', 'SpaceX', 'Hubble_Space_Telescope']
-NASA_DATA = True  # Set to True if you want to scrape NASA data
+INCLUDE_NASA_DATA = True
 
 def load_pdfs_data():
-    """Load PDF data from a specified directory"""
+    """Load PDF data with metadata."""
     print("Loading PDFs...")
-    pdf_data = load_pdfs(PDF_DIR)
-    return pdf_data
+    return load_pdfs(PDF_DIR)
 
 def load_csv_data():
-    """Load CSV data from a specified directory"""
-    print("Loading CSV data...")
-    csv_data = load_csv(CSV_DIR)
-    return csv_data
+    """Load CSV data with metadata."""
+    print("Loading CSVs...")
+    return load_csv(CSV_DIR)
 
 def load_wikipedia_data():
-    """Load Wikipedia data for specific titles"""
-    print("Loading Wikipedia data...")
-    wiki_data = get_wikipedia_data(WIKIPEDIA_TITLES)
-    return wiki_data
+    """Load Wikipedia data with metadata."""
+    print("Loading Wikipedia...")
+    return get_wikipedia_data(WIKIPEDIA_TITLES)
 
 def load_nasa_data():
-    """Load NASA scraped data"""
-    print("Loading NASA data...")
-    nasa_data = get_nasa_data()
-    return nasa_data
+    """Load NASA scraped data with metadata."""
+    print("Loading NASA scraped content...")
+    return get_nasa_data()
 
 def load_all_data():
-    """Load all data sources (PDFs, CSVs, Wikipedia, NASA)"""
+    """
+    Load all datasets: PDFs, CSVs, Wikipedia, and optionally NASA.
+    Returns:
+        Tuple[List[str], List[dict]]: corpus texts and their metadata
+    """
     corpus = []
+    metadata = []
 
-    # Load the raw data
-    corpus.extend(load_pdfs_data())  # Add PDF data
-    corpus.extend(load_csv_data())   # Add CSV data
-    corpus.extend(load_wikipedia_data())  # Add Wikipedia data
-    
-    if NASA_DATA:
-        corpus.extend(load_nasa_data())
+    loaders = [load_pdfs_data, load_csv_data, load_wikipedia_data]
+    if INCLUDE_NASA_DATA:
+        loaders.append(load_nasa_data)
 
-    return corpus
+    for loader in loaders:
+        docs, meta = loader()
+        corpus.extend(docs)
+        metadata.extend(meta)
+        
+    print(f"Corpus size: {len(corpus)}")
+    print(f"Metadata size: {len(metadata)}")
+    return corpus, metadata
 
 if __name__ == "__main__":
-    # For testing purposes, load all data
-    all_data = load_all_data()
-    print(f"Loaded {len(all_data)} documents.")
+    corpus, metadata = load_all_data()
+    print(f"✅ Loaded {len(corpus)} documents with metadata.")
+    print(f"📎 Example metadata:\n{metadata[0] if metadata else 'No metadata found.'}")
