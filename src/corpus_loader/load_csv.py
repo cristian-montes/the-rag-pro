@@ -19,7 +19,7 @@ def load_csv(data_path):
                 metadata.append({
                     "source": "CSV",
                     "filename": file,
-                    "filepath": file_path,
+                    "url": file_path,
                     "rows": len(df),
                     "columns": len(df.columns)
                 })

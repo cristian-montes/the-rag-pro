@@ -93,7 +93,7 @@ def main():
     ebook_links = ebook_links[:max_ebooks]
 
     metadata = load_metadata()
-    downloaded_urls = {entry["pdf_url"] for entry in metadata}
+    downloaded_urls = {entry["url"] for entry in metadata}
 
     for overview_url in ebook_links:
         title, description, pdf_links = extract_pdf_links_and_metadata(overview_url)
@@ -107,7 +107,7 @@ def main():
             metadata.append({
                 "title": title,
                 "description": description,
-                "pdf_url": pdf_url,
+                "url": pdf_url,
                 "filename": filename,
                 "source": overview_url
             })

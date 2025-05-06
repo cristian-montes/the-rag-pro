@@ -30,6 +30,8 @@ def load_nasa_data():
     return get_nasa_data()
 
 def load_all_data():
+
+
     """
     Load all datasets: PDFs, CSVs, Wikipedia, and optionally NASA.
     Returns:
@@ -46,9 +48,7 @@ def load_all_data():
         docs, meta = loader()
         corpus.extend(docs)
         metadata.extend(meta)
-        
-    print(f"Corpus size: {len(corpus)}")
-    print(f"Metadata size: {len(metadata)}")
+
     return corpus, metadata
 
 if __name__ == "__main__":
