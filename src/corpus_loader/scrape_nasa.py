@@ -1,3 +1,4 @@
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -5,13 +6,14 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import json
-import os
 
 NASA_URL = "https://www.nasa.gov/missions/"
 CACHE_FILE = "data/nasa/nasa_missions.json"
+METADATA_FILE = "data/nasa/metadata.json"
 
 def scrape_nasa_selenium():
     nasa_texts = []
+    metadata = []
 
     # Configure Selenium (Headless Mode for Faster Scraping)
     chrome_options = Options()
@@ -36,6 +38,11 @@ def scrape_nasa_selenium():
             text = item.get_text().strip()
             if text:
                 nasa_texts.append(text)
+                # Add mission metadata (for example, using section headers or some identifiers)
+                metadata.append({
+                    "source": "NASA",
+                    "url": NASA_URL
+                })
 
     except Exception as e:
         print(f"Failed to scrape NASA data: {e}")
@@ -43,31 +50,29 @@ def scrape_nasa_selenium():
     finally:
         driver.quit()  # Close the browser session
 
-    return nasa_texts
+    return nasa_texts, metadata
 
 def get_nasa_data():
     if os.path.exists(CACHE_FILE):
-        print("Loading cached NASA data")
+        print("Loading cached NASA data...")
         with open(CACHE_FILE, "r") as f:
             data = json.load(f)
-
-        # Ensure data is returned as a list
-        return list(data) if isinstance(data, dict) else data
+        with open(METADATA_FILE, "r") as f:
+            metadata = json.load(f)
+        return data, metadata
     else:
         print("Fetching new NASA data...")
-        data = scrape_nasa_selenium()
-        
+        data, metadata = scrape_nasa_selenium()
+
         os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
         with open(CACHE_FILE, "w") as f:
             json.dump(data, f, indent=4)
 
-        return data
+        with open(METADATA_FILE, "w") as f:
+            json.dump(metadata, f, indent=4)
 
+        return data, metadata
 
 if __name__ == "__main__":
-    nasa_data = get_nasa_data()
-    print(f"Loaded {len(nasa_data)} entries")
-
-    for i, text in enumerate(nasa_data[:3]):
-        print(f"\nArticle {i + 1}:\n{text[:300]}...")
-        print("=" * 40)
+    nasa_data, metadata = get_nasa_data()
+    print(f"Loaded {len(nasa_data)} entries with metadata.")
