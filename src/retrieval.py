@@ -22,21 +22,30 @@ def load_bm25_index():
         metadata = json.load(mf)
     print("BM25 metadata loaded.")
 
-    return bm25, metadata
+    bm25_corpus_path = os.path.join(INDEX_DIR, "bm25_corpus.json")
+    with open(bm25_corpus_path, "r") as f:
+        corpus = json.load(f)
+    print("BM25 corpus loaded.")
+
+    return bm25, corpus, metadata
+
 
 def load_faiss_index():
     faiss_index_path = os.path.join(INDEX_DIR, "faiss_index.idx")
     vectorizer_path = os.path.join(INDEX_DIR, "tfidf_vectorizer.pkl")
     faiss_meta_path = os.path.join(INDEX_DIR, "faiss_metadata.json")
+    faiss_corpus_path = os.path.join(INDEX_DIR, "faiss_corpus.json")
 
     index = faiss.read_index(faiss_index_path)
     with open(vectorizer_path, "rb") as f:
         vectorizer = pickle.load(f)
     with open(faiss_meta_path, "r") as mf:
         metadata = json.load(mf)
+    with open(faiss_corpus_path, "r") as f:
+        corpus = json.load(f)
 
-    print("FAISS index, TF-IDF vectorizer, and metadata loaded.")
-    return index, vectorizer, metadata
+    print("FAISS index, TF-IDF vectorizer, metadata, and corpus loaded.")
+    return index, vectorizer, corpus, metadata
 
 def retrieve_bm25(query, bm25, corpus, metadata, top_k=5):
     tokenized_query = query.split()

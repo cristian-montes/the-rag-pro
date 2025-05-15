@@ -11,9 +11,6 @@ def main():
     print("Preprocessing data...")
     cleaned_corpus = preprocess(corpus)
 
-    # Optionally, you can save or process the metadata as well
-    # For example, you could save metadata to a separate file or use it in building indices
-    # Save metadata to a file or use it as needed
     print("Metadata has been loaded and can be used or saved.")
 
     # Build BM25 index
