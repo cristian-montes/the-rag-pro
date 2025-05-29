@@ -1,99 +1,111 @@
 #!/usr/bin/env python
+"""
+Lightweight CLI for local Q&A that:
+ • retrieves top-k chunks (BM25+FAISS),
+ • feeds them to Mistral with an *answer-only-if-supported* prompt,
+ • prints answer + structured citations.
+"""
 
-import re
-from load_mistral import load_mistral
-from retrieval import (
-    retrieve_bm25, retrieve_faiss,
-    load_bm25_index, load_faiss_index
-)
-from corpus_loader.preprocess import preprocess
-from corpus_loader.load_all_data import load_all_data
-from corpus_loader.corpus_loader import main as corpus_loader_main
+import os, re, textwrap, json
+from retrieval import retrieve
+from load_mistral import load as load_llm
+from corpus_loader.build_index import build
 
-# Cache to avoid reloading resources
-_cached_data = {}
 
 # Constants
-MAX_CONTEXT_TOKENS = 2000
-GENERATION_MAX_TOKENS = 600
-STOP_TOKENS = ["</s>", "###", "Answer:"]
+K             = 6
+MAX_GEN_TOK   = 512
+STOP_TOKENS   = ["</s>", "###", "Answer:"]
+DATA_DIR      = "data"
+INDEX_DIR     = "index"
 
+PROMPT_TMPL = """<|system|>
+You are an expert assistant. Rely *only* on the provided context.
+If the answer is not contained in it, reply exactly: "I don’t know.".
+When you answer, append a line "Sources:" listing each cited chunk id.
+<|user|>
+Question: {question}
 
-def preprocess_query(query):
-    """Lowercase and strip punctuation."""
-    return re.sub(r'[^\w\s]', '', query.lower())
+Context:
+{context}
+<|assistant|>
+Answer:
+"""
 
+def format_context(hits):
+    lines = []
+    for i, h in enumerate(hits, 1):
+        meta = json.dumps(h["meta"], ensure_ascii=False)
+        lines.append(f"[{i}] {h['doc']}\nMETA: {meta}\n")
+    return "\n".join(lines)
 
-def select_best_result(bm25_results, faiss_results):
-    """Select best result between BM25 and FAISS based on normalized scores."""
-    best_bm25 = bm25_results[0]
-    best_faiss = faiss_results[0]
-    normalized_faiss_score = 1 / (1 + best_faiss['distance'])
+def ensure_ready():
+    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(INDEX_DIR, exist_ok=True)
 
-    return (best_bm25, "BM25") if best_bm25['score'] > normalized_faiss_score else (best_faiss, "FAISS")
+    print("\n🔍 Checking for existing data and indexes...")
 
+    bm25_path = os.path.join(INDEX_DIR, "bm25.pkl")
+    faiss_path = os.path.join(INDEX_DIR, "faiss.idx")
 
-def combine_context_and_query(query, best_result, retrieval_method, max_tokens=MAX_CONTEXT_TOKENS):
-    """Truncate context and format it with the query."""
-    best_context = " ".join(best_result['document'].split()[:max_tokens])
-    meta = best_result.get("metadata", {})
-
-    combined = (
-        f"Question: {query}\n"
-        f"Context (from {retrieval_method}): {best_context}\n"
-        "Answer:"
-    )
-    return combined, meta.get("source", "Unknown source"), meta.get("url", "not found"), meta.get("title", "N/A")
-
-
-def load_cached_resources():
-    """Load and cache model, index, and metadata."""
-    if not _cached_data:
-        corpus_loader_main()
-        _cached_data.update({
-            'model': load_mistral(),
-            'bm25': None, 'bm25_corpus': None, 'bm25_metadata': None,
-            'faiss_index': None, 'vectorizer': None, 'faiss_corpus': None, 'faiss_metadata': None,
-        })
-
-        # Load and unpack all indexes
-        _cached_data['bm25'], _cached_data['bm25_corpus'], _cached_data['bm25_metadata'] = load_bm25_index()
-        _cached_data['faiss_index'], _cached_data['vectorizer'], _cached_data['faiss_corpus'], _cached_data['faiss_metadata'] = load_faiss_index()
-        _cached_data['preprocessed_corpus'] = preprocess(_cached_data['bm25_corpus'])
-
-    return _cached_data
+    if not os.path.exists(bm25_path) or not os.path.exists(faiss_path):
+        print("🔧 Index files not found. Building indexes...")
+        build()  # This calls load_all_data() internally
+        print("✅ All indexes built.\n")
+    else:
+        print("✅ Index files found. Skipping index building.\n")
 
 
 def main():
-    resources = load_cached_resources()
+    ensure_ready()
+    llm = load_llm()
 
+    print("🔸 Ask anything (type 'exit' to quit).")
     while True:
-        query = input("\nEnter your question (or type 'exit' to quit): ").strip()
-        if query.lower() == "exit":
+        q = input("\n❓ ").strip()
+        if q.lower() == "exit":
+            print("👋 Goodbye!")
             break
-        if not query or not re.search(r'\w', query):
-            print("⚠️  Please enter a valid question with actual words.")
+        if not re.search(r"\w", q):
             continue
 
-        cleaned_query = preprocess_query(query)
-        print("\n🔍 Retrieving context...")
+        hits = retrieve(q, K)
+        ctx = format_context(hits)
+        prompt = PROMPT_TMPL.format(question=q, context=ctx)
 
-        bm25_results = retrieve_bm25(cleaned_query, resources['bm25'], resources['bm25_corpus'], resources['bm25_metadata'])
-        faiss_results = retrieve_faiss(cleaned_query, resources['faiss_index'], resources['vectorizer'], resources['faiss_corpus'], resources['faiss_metadata'])
+        out = llm(
+            prompt,
+            max_tokens=MAX_GEN_TOK,
+            temperature=0.2,
+            top_p=0.9,
+            stop=STOP_TOKENS
+        )["choices"][0]["text"].strip()
 
-        best_result, method = select_best_result(bm25_results, faiss_results)
-        combined_input, source, url, title = combine_context_and_query(query, best_result, method)
+        print("\n🧠", textwrap.fill(out, 100))
 
-        response = resources['model'](
-            combined_input,
-            max_tokens=GENERATION_MAX_TOKENS,
-            stop=STOP_TOKENS,
-            echo=False
-        )
+        # Extract cited source numbers from the answer
+        cited_ids = set(map(int, re.findall(r"\[(\d+)\]", out)))
 
-        print(f"\n🧠 Model Response ({method} used):\n{response['choices'][0]['text'].strip()}")
-        print(f"📚 Title: {title}\n🔗 URL: {url}\n")
+        if cited_ids:
+            print("\n📚 Cited sources:")
+            for idx, h in enumerate(hits, 1):
+                if idx in cited_ids:
+                    doc_snippet = h["doc"].strip().replace("\n", " ")
+                    # metaatos = h["meta"]
+                    # print(metaatos)
 
+                    if len(doc_snippet) > 200:
+                        doc_snippet = doc_snippet[:400].rstrip() + "..."
+                    # doc_id = h["meta"].get("doc_id", "?")
+                    # chunk_id = h["meta"].get("chunk_id", "?")
+                    title = h["meta"].get("title", "?")
+                    # print(f"[{idx}] \"{doc_snippet}\" (doc_id: {doc_id}, chunk_id: {chunk_id}), title: {title}")
+                    print(f"Title: {title} - \"{doc_snippet}\" ")
+        else:
+            print("\n📚 No specific sources cited.")
 
 if __name__ == "__main__":
     main()
+
+
+

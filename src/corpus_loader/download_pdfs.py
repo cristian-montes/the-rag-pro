@@ -3,11 +3,14 @@ import json
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
+from tqdm import tqdm
 
 # Constants
 BASE_URL = "https://www.nasa.gov/ebooks/"
 PDF_DIR = "data/pdfs"
 METADATA_FILE = "data/pdfs/metadata.json"
+HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; NASA-Scraper/1.0)"}
+MIN_VALID_SIZE = 1024  # 1 KB
 
 # Ensure directory exists
 os.makedirs(PDF_DIR, exist_ok=True)
@@ -31,11 +34,16 @@ def save_metadata(metadata):
 
 def fetch_ebook_links():
     """Fetch all overview page URLs from NASA eBooks."""
-    response = requests.get(BASE_URL)
+    try:
+        response = requests.get(BASE_URL, headers=HEADERS, timeout=15)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"❌ Failed to fetch ebook list: {e}")
+        return []
+
     soup = BeautifulSoup(response.text, "html.parser")
     ebook_links = []
 
-    # Find all <a> tags that act as 'Overview' buttons
     for a in soup.find_all("a", class_="button-primary"):
         if a.get_text(strip=True).lower() == "overview":
             overview_url = a.get("href")
@@ -46,7 +54,13 @@ def fetch_ebook_links():
     return ebook_links
 
 def extract_pdf_links_and_metadata(overview_url):
-    response = requests.get(overview_url)
+    try:
+        response = requests.get(overview_url, headers=HEADERS, timeout=15)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"❌ Failed to fetch overview page {overview_url}: {e}")
+        return "Unknown Title", "No description available.", []
+
     soup = BeautifulSoup(response.text, "html.parser")
 
     title = soup.find("h1").text.strip() if soup.find("h1") else "Unknown Title"
@@ -57,45 +71,57 @@ def extract_pdf_links_and_metadata(overview_url):
     for a in soup.find_all("a", href=True):
         href = a["href"]
         parsed = urlparse(href)
-
-        # Check if the path ends with .pdf (ignore query params)
         if parsed.path.lower().endswith(".pdf"):
             full_url = urljoin(overview_url, href)
             pdf_links.append(full_url)
 
     return title, description, pdf_links
 
-
 def download_pdf(pdf_url):
-    # Strip query params from filename
     parsed_url = urlparse(pdf_url)
-    filename = os.path.basename(parsed_url.path)  # this removes query string
+    filename = os.path.basename(parsed_url.path)
     filepath = os.path.join(PDF_DIR, filename)
 
     if os.path.exists(filepath):
-        print(f"Already downloaded (file check): {filename}")
+        if os.path.getsize(filepath) >= MIN_VALID_SIZE:
+            print(f"Already downloaded (file check): {filename}")
+            return filename
+        else:
+            print(f"⚠️ Found tiny file. Re-downloading: {filename}")
+            os.remove(filepath)
+
+    try:
+        print(f"⬇️ Downloading: {filename}")
+        response = requests.get(pdf_url, stream=True, headers=HEADERS, timeout=30)
+        response.raise_for_status()
+
+        with open(filepath, "wb") as f:
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+
+        if os.path.getsize(filepath) < MIN_VALID_SIZE:
+            print(f"⚠️ Skipping too-small file: {filename}")
+            os.remove(filepath)
+            return None
+
         return filename
 
-    print(f"Downloading: {filename}")
-    response = requests.get(pdf_url, stream=True)
-    with open(filepath, "wb") as f:
-        for chunk in response.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-    return filename
+    except requests.RequestException as e:
+        print(f"❌ Failed to download {pdf_url}: {e}")
+        return None
 
-def main():
+def download_pdfs(max_ebooks=10):
     ebook_links = fetch_ebook_links()
-    print(f"Found {len(ebook_links)} overview links.")
+    if not ebook_links:
+        return
 
-    # Limit to 50 for local development
-    max_ebooks = 50
     ebook_links = ebook_links[:max_ebooks]
 
     metadata = load_metadata()
     downloaded_urls = {entry["url"] for entry in metadata}
 
-    for overview_url in ebook_links:
+    for overview_url in tqdm(ebook_links, desc="Processing eBooks"):
         title, description, pdf_links = extract_pdf_links_and_metadata(overview_url)
 
         for pdf_url in pdf_links:
@@ -104,6 +130,9 @@ def main():
                 continue
 
             filename = download_pdf(pdf_url)
+            if not filename:
+                continue
+
             metadata.append({
                 "title": title,
                 "description": description,
@@ -114,8 +143,7 @@ def main():
             downloaded_urls.add(pdf_url)
 
     save_metadata(metadata)
-
     print(f"✅ Completed. Total PDFs in metadata: {len(metadata)}")
 
 if __name__ == "__main__":
-    main()
+    download_pdfs()
