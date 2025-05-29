@@ -1,120 +1,71 @@
-import os
-import json
-import pickle
-import faiss
+# retrieval.py
+
+import json, os, pickle, faiss, numpy as np
 import numpy as np
 from rank_bm25 import BM25Okapi
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-INDEX_DIR = "./index"
+INDEX_DIR = "index"
 
-# Ensure index directory exists
-os.makedirs(INDEX_DIR, exist_ok=True)
+bm25 = None
+bm25_corpus = None
+bm25_meta = None
 
-def load_bm25_index():
-    bm25_path = os.path.join(INDEX_DIR, "bm25_index.pkl")
-    with open(bm25_path, "rb") as f:
-        bm25 = pickle.load(f)
-    print("BM25 index loaded.")
+faiss_index = None
+vectorizer = None
+faiss_corpus = None
+faiss_meta = None
 
-    bm25_meta_path = os.path.join(INDEX_DIR, "bm25_metadata.json")
-    with open(bm25_meta_path, "r") as mf:
-        metadata = json.load(mf)
-    print("BM25 metadata loaded.")
+def load_indexes():
+    global bm25, bm25_corpus, bm25_meta
+    global faiss_index, vectorizer, faiss_corpus, faiss_meta
 
-    bm25_corpus_path = os.path.join(INDEX_DIR, "bm25_corpus.json")
-    with open(bm25_corpus_path, "r") as f:
-        corpus = json.load(f)
-    print("BM25 corpus loaded.")
+    def _load(fname, loader):
+        path = os.path.join(INDEX_DIR, fname)
+        with open(path, 'rb') as f:
+            return loader(f)
 
-    return bm25, corpus, metadata
+    bm25 = _load("bm25.pkl", pickle.load)
+    bm25_corpus = json.load(open(os.path.join(INDEX_DIR, "bm25_corpus.json")))
+    bm25_meta = json.load(open(os.path.join(INDEX_DIR, "bm25_metadata.json")))
 
+    faiss_index = faiss.read_index(os.path.join(INDEX_DIR, "faiss.idx"))
+    vectorizer = _load("tfidf.pkl", pickle.load)
+    faiss_corpus = json.load(open(os.path.join(INDEX_DIR, "faiss_corpus.json")))
+    faiss_meta = json.load(open(os.path.join(INDEX_DIR, "faiss_metadata.json")))
 
-def load_faiss_index():
-    faiss_index_path = os.path.join(INDEX_DIR, "faiss_index.idx")
-    vectorizer_path = os.path.join(INDEX_DIR, "tfidf_vectorizer.pkl")
-    faiss_meta_path = os.path.join(INDEX_DIR, "faiss_metadata.json")
-    faiss_corpus_path = os.path.join(INDEX_DIR, "faiss_corpus.json")
+def retrieve(query: str, k=4):
+    if bm25 is None or faiss_index is None:
+        load_indexes()
 
-    index = faiss.read_index(faiss_index_path)
-    with open(vectorizer_path, "rb") as f:
-        vectorizer = pickle.load(f)
-    with open(faiss_meta_path, "r") as mf:
-        metadata = json.load(mf)
-    with open(faiss_corpus_path, "r") as f:
-        corpus = json.load(f)
+    # ── BM25 ──
+    q_tok = query.split()
+    bm25_scores = bm25.get_scores(q_tok)
+    top_bm25_idx = np.argsort(bm25_scores)[::-1][:k]
+    bm25_hits = [{
+        "score": float(bm25_scores[i]),
+        "doc": bm25_corpus[i],
+        "meta": bm25_meta[i],
+        "method": "bm25"
+    } for i in top_bm25_idx]
 
-    print("FAISS index, TF-IDF vectorizer, metadata, and corpus loaded.")
-    return index, vectorizer, corpus, metadata
+    # ── FAISS ──
+    q_vec_sparse = vectorizer.transform([query])
 
-def retrieve_bm25(query, bm25, corpus, metadata, top_k=5):
-    tokenized_query = query.split()
-    scores = bm25.get_scores(tokenized_query)
-    ranked_indices = np.argsort(scores)[::-1]
-    results = []
-    for idx in ranked_indices[:top_k]:
-        results.append({
-            "score": float(scores[idx]),
-            "document": corpus[idx],
-            "metadata": metadata[idx]
-        })
-    print(metadata[idx])    
-    return results
+    # Convert sparse matrix to dense float32 ndarray
+    q_vec = q_vec_sparse.toarray().astype(np.float32)
+    if q_vec.ndim == 1:
+        q_vec = q_vec.reshape(1, -1)
+    # print("DEBUG: reshaped q_vec.shape:", q_vec.shape)
 
-def retrieve_faiss(query, index, vectorizer, corpus, metadata, top_k=5):
-    query_vector = vectorizer.transform([query]).toarray().astype('float32')
-    distances, indices = index.search(query_vector, top_k)
-    results = []
-    for idx, dist in zip(indices[0], distances[0]):
-        results.append({
-            "distance": float(dist),
-            "document": corpus[idx],
-            "metadata": metadata[idx]
-        })
-    print(metadata[idx]) 
-    return results
+    D, I = faiss_index.search(q_vec, k)
+    faiss_hits = [{
+        "score": float(1 / (1 + d + 1e-6)),  # convert distance→similarity
+        "doc": faiss_corpus[i],
+        "meta": faiss_meta[i],
+        "method": "faiss"
+    } for i, d in zip(I[0], D[0])]
 
-def main():
-    # Load BM25 index and associated metadata
-    bm25, bm25_metadata = load_bm25_index()
-
-    # Load FAISS index, TF-IDF vectorizer, and metadata
-    faiss_index, vectorizer, faiss_metadata = load_faiss_index()
-
-    # Load the real corpus used during indexing
-    bm25_corpus_path = os.path.join(INDEX_DIR, "bm25_corpus.json")
-    faiss_corpus_path = os.path.join(INDEX_DIR, "faiss_corpus.json")
-
-    if os.path.exists(bm25_corpus_path):
-        with open(bm25_corpus_path, "r") as f:
-            bm25_corpus = json.load(f)
-    else:
-        print("BM25 corpus file not found.")
-        return
-
-    if os.path.exists(faiss_corpus_path):
-        with open(faiss_corpus_path, "r") as f:
-            faiss_corpus = json.load(f)
-    else:
-        print("FAISS corpus file not found.")
-        return
-
-    # Define a test query
-    query = "space and technology"
-
-    # Retrieve using BM25
-    bm25_results = retrieve_bm25(query, bm25, bm25_corpus, bm25_metadata)
-    print("\nBM25 Top Results:")
-    for result in bm25_results:
-        print(f"Score: {result['score']:.4f} | Doc: {result['document']} | Source: {result['metadata'].get('source', 'N/A')}")
-
-    # Retrieve using FAISS
-    faiss_results = retrieve_faiss(query, faiss_index, vectorizer, faiss_corpus, faiss_metadata)
-    print("\nFAISS Top Results:")
-    for result in faiss_results:
-        print(f"Distance: {result['distance']:.4f} | Doc: {result['document']} | Source: {result['metadata'].get('source', 'N/A')}")
-
-
-if __name__ == "__main__":
-    main()
+    # Combine & sort by score
+    return sorted(bm25_hits + faiss_hits, key=lambda x: -x["score"])[:k]
 

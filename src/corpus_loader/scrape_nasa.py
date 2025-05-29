@@ -15,62 +15,57 @@ def scrape_nasa_selenium():
     nasa_texts = []
     metadata = []
 
-    # Configure Selenium (Headless Mode for Faster Scraping)
     chrome_options = Options()
-    chrome_options.add_argument("--headless=new")  # Use newer headless mode for stability
+    chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--window-size=1920,1080")  # Ensure full page loads
+    chrome_options.add_argument("--window-size=1920,1080")
 
-    # Automatically download & manage ChromeDriver
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
     
     try:
         driver.get(NASA_URL)
-        driver.implicitly_wait(5)  # Wait for JavaScript to load
+        driver.implicitly_wait(5)
 
-        # Parse page source with BeautifulSoup
         soup = BeautifulSoup(driver.page_source, "html.parser")
 
-        # Extract text from <p> and <div> elements
-        for item in soup.find_all(["p", "div"]):
-            text = item.get_text().strip()
+        mission_divs = soup.select("div.mission-card")  # Adjust selector as needed
+        if not mission_divs:
+            mission_divs = soup.find_all("p")  # fallback
+
+        for idx, div in enumerate(mission_divs):
+            text = div.get_text(separator="\n", strip=True)
             if text:
                 nasa_texts.append(text)
-                # Add mission metadata (for example, using section headers or some identifiers)
                 metadata.append({
                     "source": "NASA",
-                    "url": NASA_URL
+                    "url": NASA_URL,
+                    "block_index": idx
                 })
 
     except Exception as e:
         print(f"Failed to scrape NASA data: {e}")
 
     finally:
-        driver.quit()  # Close the browser session
+        driver.quit()
 
     return nasa_texts, metadata
 
 def get_nasa_data():
     if os.path.exists(CACHE_FILE):
-        print("Loading cached NASA data...")
         with open(CACHE_FILE, "r") as f:
             data = json.load(f)
         with open(METADATA_FILE, "r") as f:
             metadata = json.load(f)
         return data, metadata
     else:
-        print("Fetching new NASA data...")
         data, metadata = scrape_nasa_selenium()
-
         os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
         with open(CACHE_FILE, "w") as f:
             json.dump(data, f, indent=4)
-
         with open(METADATA_FILE, "w") as f:
             json.dump(metadata, f, indent=4)
-
         return data, metadata
 
 if __name__ == "__main__":

@@ -5,65 +5,53 @@ import faiss
 import numpy as np
 from rank_bm25 import BM25Okapi
 from sklearn.feature_extraction.text import TfidfVectorizer
+from corpus_loader.load_all_data import load_all_data
+from corpus_loader.preprocess import preprocess
 
-INDEX_DIR = "./index"
+INDEX_DIR = "index"
 os.makedirs(INDEX_DIR, exist_ok=True)
 
+def save_json(obj, name):
+    with open(os.path.join(INDEX_DIR, name), "w") as f:
+        json.dump(obj, f, indent=2)
 
-def build_bm25_index(corpus, metadata):
-    tokenized_corpus = [doc.split() for doc in corpus]
-    bm25 = BM25Okapi(tokenized_corpus)
+def build():
+    # Check if indexes already exist
+    bm25_path = os.path.join(INDEX_DIR, "bm25.pkl")
+    faiss_path = os.path.join(INDEX_DIR, "faiss.idx")
 
-    with open(os.path.join(INDEX_DIR, "bm25_index.pkl"), 'wb') as f:
+    if os.path.exists(bm25_path) and os.path.exists(faiss_path):
+        print("Indexes already exist. Skipping build.")
+        return
+
+    raw_docs, raw_meta = load_all_data()
+    # chunks, chunk_meta = preprocess(raw_docs)  # important: chunk-level!
+    chunks, chunk_meta = preprocess(raw_docs, raw_meta, max_tokens=128, overlap=32)
+    save_json(raw_docs, "raw_corpus.json")  # optional debugging
+    save_json(raw_meta, "raw_metadata.json")
+
+    # ── BM25 ───────────────────────────────────────────────────
+    tokenized_chunks = [c.split() for c in chunks]
+    bm25 = BM25Okapi(tokenized_chunks)
+    with open(bm25_path, "wb") as f:
         pickle.dump(bm25, f)
-    with open(os.path.join(INDEX_DIR, "bm25_metadata.json"), 'w') as f:
-        json.dump(metadata, f, indent=2)
-    with open(os.path.join(INDEX_DIR, "bm25_corpus.json"), 'w') as f:
-        json.dump(corpus, f, indent=2)
+    save_json(chunks, "bm25_corpus.json")
+    save_json(chunk_meta, "bm25_metadata.json")
+    print("✅ BM25 built.")
 
-    print("✅ BM25 index, metadata, and corpus saved.")
-
-
-def build_faiss_index(corpus, metadata):
+    # ── FAISS (TF-IDF vectors) ─────────────────────────────────
     vectorizer = TfidfVectorizer()
-    matrix = vectorizer.fit_transform(corpus)
-
-    index = faiss.IndexFlatL2(matrix.shape[1])
-    index.add(matrix.toarray().astype('float32'))
-
-    faiss.write_index(index, os.path.join(INDEX_DIR, "faiss_index.idx"))
-    with open(os.path.join(INDEX_DIR, "tfidf_vectorizer.pkl"), "wb") as f:
+    mat = vectorizer.fit_transform(chunks).astype("float32")
+    index = faiss.IndexFlatL2(mat.shape[1])
+    index.add(mat.toarray())
+    faiss.write_index(index, faiss_path)
+    with open(os.path.join(INDEX_DIR, "tfidf.pkl"), "wb") as f:
         pickle.dump(vectorizer, f)
-    with open(os.path.join(INDEX_DIR, "faiss_metadata.json"), 'w') as f:
-        json.dump(metadata, f, indent=2)
-    with open(os.path.join(INDEX_DIR, "faiss_corpus.json"), 'w') as f:
-        json.dump(corpus, f, indent=2)
-
-    print("✅ FAISS index, vectorizer, metadata, and corpus saved.")
-
-
-def main():
-    # Replace with actual corpus/metadata loading logic if needed
-    corpus = [
-        "The cat sat on the mat.",
-        "The dog barked at the moon.",
-        "Artificial Intelligence is transforming the world.",
-        "Space exploration has advanced rapidly in recent years.",
-        "Quantum computing is a breakthrough in technology."
-    ]
-
-    metadata = [
-        {"source": "file1.txt"},
-        {"source": "file2.txt"},
-        {"source": "file3.txt"},
-        {"source": "file4.txt"},
-        {"source": "file5.txt"}
-    ]
-
-    build_bm25_index(corpus, metadata)
-    build_faiss_index(corpus, metadata)
-
+    save_json(chunks, "faiss_corpus.json")
+    save_json(chunk_meta, "faiss_metadata.json")
+    print("✅ FAISS built.")
 
 if __name__ == "__main__":
-    main()
+    build()
+
 

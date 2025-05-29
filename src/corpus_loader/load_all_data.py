@@ -14,10 +14,6 @@ def load_pdfs_data():
     print("Loading PDFs...")
     return load_pdfs(PDF_DIR)
 
-def load_csv_data():
-    """Load CSV data with metadata."""
-    print("Loading CSVs...")
-    return load_csv(CSV_DIR)
 
 def load_wikipedia_data():
     """Load Wikipedia data with metadata."""
@@ -40,7 +36,7 @@ def load_all_data():
     corpus = []
     metadata = []
 
-    loaders = [load_pdfs_data, load_csv_data, load_wikipedia_data]
+    loaders = [load_pdfs_data, load_wikipedia_data]
     if INCLUDE_NASA_DATA:
         loaders.append(load_nasa_data)
 

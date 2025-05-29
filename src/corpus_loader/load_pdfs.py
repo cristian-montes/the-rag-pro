@@ -1,7 +1,7 @@
 import os
 import json
-import fitz  # PyMuPDF
-from .download_pdfs import main as download_pdf_main
+import fitz 
+from .download_pdfs import download_pdfs
 
 METADATA_FILE = "data/pdfs/metadata.json"
 
@@ -24,7 +24,7 @@ def find_metadata_for_file(filename, metadata_list):
     }
 
 def load_pdfs(path):
-    download_pdf_main()
+    download_pdfs()
     texts = []
     metadata = []
     saved_metadata = load_saved_metadata()
