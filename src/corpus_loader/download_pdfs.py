@@ -3,19 +3,18 @@ import json
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
-from tqdm import tqdm
+from tqdm import tqdm  # For displaying progress bars in loops
 
-# Constants
 BASE_URL = "https://www.nasa.gov/ebooks/"
 PDF_DIR = "data/pdfs"
 METADATA_FILE = "data/pdfs/metadata.json"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; NASA-Scraper/1.0)"}
-MIN_VALID_SIZE = 1024  # 1 KB
+MIN_VALID_SIZE = 1024  # Minimum file size (1 KB) to be considered valid
 
-# Ensure directory exists
 os.makedirs(PDF_DIR, exist_ok=True)
 
 def load_metadata():
+    """Load previously saved metadata if available."""
     if os.path.exists(METADATA_FILE):
         try:
             with open(METADATA_FILE, "r") as f:
@@ -29,11 +28,13 @@ def load_metadata():
     return []
 
 def save_metadata(metadata):
+    """Save metadata to file."""
     with open(METADATA_FILE, "w") as f:
         json.dump(metadata, f, indent=2)
 
+
 def fetch_ebook_links():
-    """Fetch all overview page URLs from NASA eBooks."""
+    """Fetch all overview page URLs from NASA eBooks landing page."""
     try:
         response = requests.get(BASE_URL, headers=HEADERS, timeout=15)
         response.raise_for_status()
@@ -54,6 +55,7 @@ def fetch_ebook_links():
     return ebook_links
 
 def extract_pdf_links_and_metadata(overview_url):
+    """Parse an overview page to extract PDF links and basic metadata."""
     try:
         response = requests.get(overview_url, headers=HEADERS, timeout=15)
         response.raise_for_status()
@@ -63,10 +65,12 @@ def extract_pdf_links_and_metadata(overview_url):
 
     soup = BeautifulSoup(response.text, "html.parser")
 
+    # Try to find the book title and description
     title = soup.find("h1").text.strip() if soup.find("h1") else "Unknown Title"
     description_tag = soup.find("meta", attrs={"name": "description"})
     description = description_tag["content"] if description_tag else "No description available."
 
+    # Extract any links to PDF files
     pdf_links = []
     for a in soup.find_all("a", href=True):
         href = a["href"]
@@ -78,6 +82,7 @@ def extract_pdf_links_and_metadata(overview_url):
     return title, description, pdf_links
 
 def download_pdf(pdf_url):
+    """Download a PDF if not already downloaded and validate its size."""
     parsed_url = urlparse(pdf_url)
     filename = os.path.basename(parsed_url.path)
     filepath = os.path.join(PDF_DIR, filename)
@@ -112,15 +117,19 @@ def download_pdf(pdf_url):
         return None
 
 def download_pdfs(max_ebooks=10):
+    """Main function to fetch and download a set number of NASA eBook PDFs."""
     ebook_links = fetch_ebook_links()
     if not ebook_links:
         return
 
+    # Limit the number of eBooks processed (optional cap)
     ebook_links = ebook_links[:max_ebooks]
 
+    # Load existing metadata to avoid redundant downloads
     metadata = load_metadata()
     downloaded_urls = {entry["url"] for entry in metadata}
 
+    # Process each overview page and its PDFs
     for overview_url in tqdm(ebook_links, desc="Processing eBooks"):
         title, description, pdf_links = extract_pdf_links_and_metadata(overview_url)
 
