@@ -1,0 +1,47 @@
+[
+  {
+    "query": "when was the hubble space telescope 20th anniversarity?",
+    "expected": "hubble space telescope celebrated its 20th anniversary space april 24 2010 commemorate"
+  },
+  {
+    "query": "What is the goal of the Apollo program?",
+    "expected": ["land humans on the Moon", "Apollo's mission was to perform crewed lunar landings"]
+  },
+  {
+    "query": "When was the Hubble Space Telescope launched?",
+    "expected": ["April 24, 1990"]
+  },
+  {
+    "query": "What does EDL stand for in Mars missions?",
+    "expected": ["Entry, Descent, and Landing"]
+  },
+  {
+    "query": "Who developed the Hubble Space Telescope?",
+    "expected": ["NASA", "European Space Agency", "Lockheed"]
+  },
+  {
+    "query": "What is the function of the Mars Reconnaissance Orbiter?",
+    "expected": ["study Mars' atmosphere and terrain", "send back data about Mars surface"]
+  },
+  {
+    "query": "What are the benefits of microgravity research?",
+    "expected": ["improves our understanding of biology", "reveals how fluids behave in space"]
+  },
+  {
+    "query": "How does NASA ensure spacecraft cleanliness?",
+    "expected": ["planetary protection protocols", "biological contamination control"]
+  },
+  {
+    "query": "What is the Hubble Ultra Deep Field?",
+    "expected": ["image of distant galaxies", "longest exposure of the universe"]
+  },
+  {
+    "query": "When did SpaceX first launch the Falcon 9 rocket?",
+    "expected": ["June 4, 2010"]
+  },
+  {
+    "query": "What is the Artemis program?",
+    "expected": ["return humans to the Moon", "NASA’s program to land the first woman on the Moon"]
+  }
+]
+
