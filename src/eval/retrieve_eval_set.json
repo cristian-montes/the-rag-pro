@@ -1,47 +1,20 @@
 [
   {
     "query": "when was the hubble space telescope 20th anniversarity?",
-    "expected": "hubble space telescope celebrated its 20th anniversary space april 24 2010 commemorate"
+    "expected": ["hubble space telescope celebrated its 20th anniversary space april 24 2010 commemorate","april 24 2010","celebration images hubble space telescope celebrated its 20th anniversary space april 24 2010 commemorate occasion nasa esa space telescope science institute stsci released image carina nebula commemorate hubble s 25th anniversary space april 24 2015 stsci released images of westerlund 2 cluster located about 20 000 light years 6 100 pc away constellation carina through its hubble 25 website european space agency created dedicated 25th anniversary page its website april 2016 special celebratory image of bubble nebula was released hubble s 26th birthday"
+  ]
   },
   {
-    "query": "What is the goal of the Apollo program?",
-    "expected": ["land humans on the Moon", "Apollo's mission was to perform crewed lunar landings"]
+    "query": "initially the hubble data transmissted to Earth how was it stored?",
+    "expected": [ "data was initially stored on the spacecraft when launched the storage facilities were old fashioned reel to reel tape drives but these were"
+  ]
   },
   {
-    "query": "When was the Hubble Space Telescope launched?",
-    "expected": ["April 24, 1990"]
-  },
-  {
-    "query": "What does EDL stand for in Mars missions?",
-    "expected": ["Entry, Descent, and Landing"]
-  },
-  {
-    "query": "Who developed the Hubble Space Telescope?",
-    "expected": ["NASA", "European Space Agency", "Lockheed"]
-  },
-  {
-    "query": "What is the function of the Mars Reconnaissance Orbiter?",
-    "expected": ["study Mars' atmosphere and terrain", "send back data about Mars surface"]
-  },
-  {
-    "query": "What are the benefits of microgravity research?",
-    "expected": ["improves our understanding of biology", "reveals how fluids behave in space"]
-  },
-  {
-    "query": "How does NASA ensure spacecraft cleanliness?",
-    "expected": ["planetary protection protocols", "biological contamination control"]
-  },
-  {
-    "query": "What is the Hubble Ultra Deep Field?",
-    "expected": ["image of distant galaxies", "longest exposure of the universe"]
-  },
-  {
-    "query": "When did SpaceX first launch the Falcon 9 rocket?",
-    "expected": ["June 4, 2010"]
-  },
-  {
-    "query": "What is the Artemis program?",
-    "expected": ["return humans to the Moon", "NASA’s program to land the first woman on the Moon"]
+    "query": "what is spacex commonly referred as?",
+    "expected":["Space Exploration Technologies Corp", "space exploration technologies corp", "space exploration technologies corp commonly referred spacex is american space technology company headquartered starbase development site starbase texas since its founding 2002 company has made numerous advances rocket propulsion reusable launch vehicles human spaceflight satellite constellation technology of 2025 spacex is world s dominant space launch provider its launch cadence eclipsing all others including private competitors national programs like chinese space program spacex nasa united states armed forces work closely together means of governmental contracts spacex was founded elon musk 2002 vision of decreasing costs of space launches paving way sustainable colony mars 2008 falcon 1 successfully launched into orbit after three failed launch attempts company moved towards development of larger falcon 9 rocket dragon 1 capsule satisfy nasa s cots contracts deliveries international space station 2012 spacex finished all cots test flights began delivering commercial resupply services missions international space station also around that time spacex started developing hardware make falcon 9 first stage reusable company demonstrated first successful first stage landing"
+  ]
   }
+
+
 ]
 

@@ -26,7 +26,7 @@ def load_indexes():
         bm25_meta = json.load(f)
 
 # Perform top-k BM25 retrieval
-def retrieve(query: str, k=4):
+def retrieve(query: str, k=5):
     if bm25 is None:
         load_indexes()
 
