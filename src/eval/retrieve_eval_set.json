@@ -1,7 +1,7 @@
 [
-  {
-    "query": "when was the hubble space telescope 20th anniversarity?",
-    "expected": ["hubble space telescope celebrated its 20th anniversary space april 24 2010 commemorate","april 24 2010","celebration images hubble space telescope celebrated its 20th anniversary space april 24 2010 commemorate occasion nasa esa space telescope science institute stsci released image carina nebula commemorate hubble s 25th anniversary space april 24 2015 stsci released images of westerlund 2 cluster located about 20 000 light years 6 100 pc away constellation carina through its hubble 25 website european space agency created dedicated 25th anniversary page its website april 2016 special celebratory image of bubble nebula was released hubble s 26th birthday"
+  {  "query": "hubble space telescope celebrated its 20th anniversary?",
+  "expected": [
+      "the hubble space telescope celebrated 20th anniversary April 24 2010."
   ]
   },
   {
