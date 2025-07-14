@@ -1,0 +1,20 @@
+[
+  {  "query": "hubble space telescope celebrated its 20th anniversary?",
+  "expected": [
+      "the hubble space telescope celebrated 20th anniversary April 24 2010."
+  ]
+  },
+  {
+    "query": "initially the hubble data transmissted to Earth how was it stored?",
+    "expected": [ "data was initially stored on the spacecraft when launched the storage facilities were old fashioned reel to reel tape drives but these were"
+  ]
+  },
+  {
+    "query": "what is spacex commonly referred as?",
+    "expected":["Space Exploration Technologies Corp", "space exploration technologies corp", "space exploration technologies corp commonly referred spacex is american space technology company headquartered starbase development site starbase texas since its founding 2002 company has made numerous advances rocket propulsion reusable launch vehicles human spaceflight satellite constellation technology of 2025 spacex is world s dominant space launch provider its launch cadence eclipsing all others including private competitors national programs like chinese space program spacex nasa united states armed forces work closely together means of governmental contracts spacex was founded elon musk 2002 vision of decreasing costs of space launches paving way sustainable colony mars 2008 falcon 1 successfully launched into orbit after three failed launch attempts company moved towards development of larger falcon 9 rocket dragon 1 capsule satisfy nasa s cots contracts deliveries international space station 2012 spacex finished all cots test flights began delivering commercial resupply services missions international space station also around that time spacex started developing hardware make falcon 9 first stage reusable company demonstrated first successful first stage landing"
+  ]
+  }
+
+
+]
+

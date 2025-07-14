@@ -11,9 +11,11 @@ from retrieval import retrieve
 from load_mistral import load as load_llm
 from corpus_loader.build_index import build
 
+# Import sklearn stopwords for query cleaning
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
 # Constants
-K             = 6
+K             = 4
 MAX_GEN_TOK   = 512
 STOP_TOKENS   = ["</s>", "###", "Answer:"]
 DATA_DIR      = "data"
@@ -31,6 +33,19 @@ Context:
 <|assistant|>
 Answer:
 """
+
+# Use sklearn's English stopwords as a set for quick lookup
+SKLEARN_STOPWORDS = set(ENGLISH_STOP_WORDS)
+
+def clean_query(query: str) -> str:
+    # Remove punctuation and lowercase
+    query = re.sub(r"[^\w\s]", " ", query.lower())
+    query = re.sub(r"\s+", " ", query).strip()
+
+    # Remove stopwords
+    words = query.split()
+    filtered = [w for w in words if w not in SKLEARN_STOPWORDS]
+    return " ".join(filtered)
 
 def format_context(hits):
     lines = []
@@ -69,21 +84,26 @@ def main():
         if not re.search(r"\w", q):
             continue
 
-        hits = retrieve(q, K)
+        # Clean the query to remove stopwords like in preprocess
+        cleaned_q = clean_query(q)
+        if not cleaned_q:
+            # If cleaning removed everything, fallback to original query
+            cleaned_q = q
+
+        hits = retrieve(cleaned_q, K)
         ctx = format_context(hits)
-        prompt = PROMPT_TMPL.format(question=q, context=ctx)
+        prompt = PROMPT_TMPL.format(question=q, context=ctx)  # keep original q in prompt
 
         out = llm(
             prompt,
             max_tokens=MAX_GEN_TOK,
             temperature=0.2,
-            top_p=0.9,
+            top_p=0.8,
             stop=STOP_TOKENS
         )["choices"][0]["text"].strip()
 
         print("\n🧠", textwrap.fill(out, 100))
 
-        # Extract cited source numbers from the answer
         cited_ids = set(map(int, re.findall(r"\[(\d+)\]", out)))
 
         if cited_ids:
@@ -91,21 +111,12 @@ def main():
             for idx, h in enumerate(hits, 1):
                 if idx in cited_ids:
                     doc_snippet = h["doc"].strip().replace("\n", " ")
-                    # metaatos = h["meta"]
-                    # print(metaatos)
-
                     if len(doc_snippet) > 200:
                         doc_snippet = doc_snippet[:400].rstrip() + "..."
-                    # doc_id = h["meta"].get("doc_id", "?")
-                    # chunk_id = h["meta"].get("chunk_id", "?")
                     title = h["meta"].get("title", "?")
-                    # print(f"[{idx}] \"{doc_snippet}\" (doc_id: {doc_id}, chunk_id: {chunk_id}), title: {title}")
                     print(f"Title: {title} - \"{doc_snippet}\" ")
         else:
             print("\n📚 No specific sources cited.")
 
 if __name__ == "__main__":
     main()
-
-
-
