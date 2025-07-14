@@ -2,7 +2,7 @@ import json
 import os
 import re
 from rapidfuzz import fuzz
-from retrieval import retrieve
+from src.dense.retrieval import retrieve
 
 # Config
 EVAL_FILE = "src/eval/retrieve_eval_set.json"

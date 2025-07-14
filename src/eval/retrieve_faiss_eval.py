@@ -1,7 +1,7 @@
 import json
 import os
 from sentence_transformers import SentenceTransformer, util
-from retrieval import retrieve
+from src.dense.retrieval import retrieve
 import argparse
 
 # -----------------------------

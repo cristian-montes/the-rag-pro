@@ -2,8 +2,8 @@ import os
 import json
 import pickle
 from rank_bm25 import BM25Okapi
-from corpus_loader.load_all_data import load_all_data
-from corpus_loader.preprocess import preprocess
+from corpus_preloader.load_all_data import load_all_data
+from sparse.sparse_corpus_loader.preprocess_sparse import preprocess
 
 # Directory to store BM25 index and related files
 INDEX_DIR = "index"

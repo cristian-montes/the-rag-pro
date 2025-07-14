@@ -1,7 +1,7 @@
 import os
 from .load_pdfs import load_pdfs              # Loads PDFs from disk
-from .scrape_nasa import get_nasa_data        # Scrapes/loads NASA data
-from .load_wikipedia import get_wikipedia_data  # Fetches Wikipedia content
+from .future_scripts_impl.scrape_nasa import get_nasa_data        # Scrapes/loads NASA data
+from .future_scripts_impl.load_wikipedia import get_wikipedia_data  # Fetches Wikipedia content
 
 # Constants for directories and sources
 PDF_DIR = "data/pdfs"
