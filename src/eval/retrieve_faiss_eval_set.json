@@ -1,0 +1,83 @@
+[
+  {
+    "query": "What is the main role of archaeology in understanding human communication with extraterrestrial intelligence?",
+    "expected": [
+      "archaeology studies human artifacts and remains to understand cultural development and communication.",
+      "it provides a framework to interpret potential extraterrestrial signals by examining symbolic and material culture.",
+      "the paper highlights archaeology’s role in providing context for interpreting alien messages within seti research."
+    ],
+    "source_pdf": "Archaeology, Anthropology, and Interstellar Communication"
+  },
+  {
+    "query": "Explain the significance of semiotic analysis in interstellar communication research as discussed in the document.",
+    "expected": [
+      "semiotic analysis decodes signs and symbols used in communication systems.",
+      "it helps researchers interpret potential extraterrestrial messages by understanding underlying meanings.",
+      "the document emphasizes semiotics as crucial for bridging human cognition with alien communication."
+    ],
+    "source_pdf": "Archaeology, Anthropology, and Interstellar Communication"
+  },
+  {
+    "query": "How does the paper suggest integrating archaeological methods with SETI to enhance the interpretation of extraterrestrial signals? Provide key methodological steps.",
+    "expected": [
+      "integration involves contextualizing signals with cultural artifacts and material evidence.",
+      "key steps include cross-disciplinary collaboration, symbolic analysis, and consideration of long-term cultural evolution.",
+      "the paper proposes using archaeological stratigraphy and site analysis analogs to interpret signal layers."
+    ],
+    "source_pdf": "Archaeology, Anthropology, and Interstellar Communication"
+  },
+  {
+    "query": "What international treaty primarily governs activities on the Moon according to this publication?",
+    "expected": [
+      "the outer space treaty of 1967 is the primary international agreement governing lunar activities.",
+      "it establishes principles for peaceful use, prohibits national appropriation, and mandates cooperation."
+    ],
+    "source_pdf": "Governing the Moon: SP-2024-4559"
+  },
+  {
+    "query": "Summarize the challenges associated with resource extraction on the Moon as presented in the document.",
+    "expected": [
+      "challenges include legal ambiguities, environmental concerns, and technological limitations.",
+      "the document discusses the difficulty of balancing commercial interests with international regulations.",
+      "ensuring sustainable practices and avoiding conflicts are highlighted as critical issues."
+    ],
+    "source_pdf": "Governing the Moon: SP-2024-4559"
+  },
+  {
+    "query": "Discuss the proposed governance frameworks for lunar activities beyond existing treaties, focusing on conflict resolution mechanisms.",
+    "expected": [
+      "new frameworks suggest multilateral agreements with transparent enforcement mechanisms.",
+      "the document highlights conflict resolution through joint committees and arbitration panels.",
+      "it emphasizes adaptive governance that evolves with lunar economic and scientific development."
+    ],
+    "source_pdf": "Governing the Moon: SP-2024-4559"
+  },
+  {
+    "query": "Who was Sergei Korolev and why is he significant in the history of rocketry?",
+    "expected": [
+      "sergei korolev was the lead soviet rocket engineer and spacecraft designer.",
+      "he is regarded as the father of practical astronautics and the soviet space program.",
+      "korolev led major achievements like sputnik and the first human spaceflight."
+    ],
+    "source_pdf": "Rockets and People Vol. 4"
+  },
+  {
+    "query": "Describe the impact of the Cold War on the development of the Soviet space program as detailed in this volume.",
+    "expected": [
+      "the cold war fueled rapid advancement and competition in rocketry technology.",
+      "it increased government funding and urgency to achieve space milestones.",
+      "the program was shaped by political pressures and strategic military interests."
+    ],
+    "source_pdf": "Rockets and People Vol. 4"
+  },
+  {
+    "query": "Analyze the technical and political challenges faced during the development of the N1 lunar rocket discussed in the document.",
+    "expected": [
+      "technically, the n1 faced engine reliability and complex staging issues.",
+      "politically, the program suffered from secrecy, leadership conflicts, and resource allocation problems.",
+      "these factors contributed to the failure of the n1 lunar missions."
+    ],
+    "source_pdf": "Rockets and People Vol. 4"
+  }
+]
+

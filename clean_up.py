@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 # File extensions to delete (customize as needed)
-TARGET_EXTENSIONS = {".pdf", ".html", ".txt", ".xml", ".json", ".csv", ".zip", ".gz",".pkl",".pyc"}
+TARGET_EXTENSIONS = {".pdf", ".html", ".txt", ".xml", ".json", ".csv", ".zip", ".gz",".pkl",".pyc",".faiss"}
 
 # True = scans files to delete, False= deletes all files
 def delete_files_in_directory(root_dir: str, dry_run: bool=True):

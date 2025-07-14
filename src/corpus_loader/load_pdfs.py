@@ -3,7 +3,7 @@ import json
 import fitz  # PyMuPDF: used to open and extract text from PDFs
 
 # Call to download PDFs beforehand (ensures required files are present)
-from .download_pdfs import download_pdfs
+from .static_download_pdfs import download_selected_pdfs
 
 # Path to saved metadata that describes each PDF file (manual or pre-created)
 METADATA_FILE = "data/pdfs/metadata.json"
@@ -31,7 +31,7 @@ def find_metadata_for_file(filename, metadata_list):
 
 # Main loader function to extract text and metadata from all PDFs in the given path
 def load_pdfs(path):
-    download_pdfs()  # Make sure PDFs are downloaded before processing
+    download_selected_pdfs()  # Make sure PDFs are downloaded before processing
 
     texts = []     # Raw text of each PDF
     metadata = []  # Metadata for each PDF

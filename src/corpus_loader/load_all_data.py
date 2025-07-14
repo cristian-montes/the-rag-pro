@@ -1,6 +1,5 @@
 import os
 from .load_pdfs import load_pdfs              # Loads PDFs from disk
-from .load_csv import load_csv                # (Not currently used here)
 from .scrape_nasa import get_nasa_data        # Scrapes/loads NASA data
 from .load_wikipedia import get_wikipedia_data  # Fetches Wikipedia content
 
@@ -8,7 +7,7 @@ from .load_wikipedia import get_wikipedia_data  # Fetches Wikipedia content
 PDF_DIR = "data/pdfs"
 CSV_DIR = "data/csvs"
 WIKIPEDIA_TITLES = ['Mars', 'Apollo_program', 'SpaceX', 'Hubble_Space_Telescope']
-INCLUDE_NASA_DATA = True  # Toggle NASA scraping on/off
+INCLUDE_NASA_DATA = False  # Toggle NASA scraping on/off
 
 # Loader for PDFs
 def load_pdfs_data():
@@ -38,7 +37,7 @@ def load_all_data():
     corpus = []     # stores raw document text
     metadata = []   # stores per-document metadata
 
-    loaders = [load_pdfs_data, load_wikipedia_data]  # base loaders
+    loaders = [load_pdfs_data]  # base loaders
     if INCLUDE_NASA_DATA:                            # conditionally add NASA
         loaders.append(load_nasa_data)
 

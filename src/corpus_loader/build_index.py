@@ -1,52 +1,55 @@
 import os
 import json
-import pickle
-from rank_bm25 import BM25Okapi
+import numpy as np
+import faiss
+from sentence_transformers import SentenceTransformer
 from corpus_loader.load_all_data import load_all_data
 from corpus_loader.preprocess import preprocess
 
-# Directory to store BM25 index and related files
 INDEX_DIR = "index"
 os.makedirs(INDEX_DIR, exist_ok=True)
 
-# Utility function to save JSON data
 def save_json(obj, filename):
     with open(os.path.join(INDEX_DIR, filename), "w") as f:
         json.dump(obj, f, indent=2)
 
-# Builds BM25 index from corpus
 def build():
-    bm25_path = os.path.join(INDEX_DIR, "bm25.pkl")
-    if os.path.exists(bm25_path):
-        print("✅ BM25 index already exists. Skipping build.")
+    index_path = os.path.join(INDEX_DIR, "dense_index.faiss")
+    if os.path.exists(index_path):
+        print("✅ FAISS index already exists. Skipping build.")
         return
 
-    print("📦 Loading data...")
+    print("📦 Loading raw data...")
     raw_docs, raw_meta = load_all_data()
 
     print("🧹 Preprocessing and chunking...")
-    chunks, chunk_meta = preprocess(
-        raw_docs,
-        raw_meta,
-        max_tokens=300,
-        overlap=50
-    )
+    chunks, chunk_meta = preprocess(raw_docs, raw_meta, max_tokens=300, overlap=50)
 
-    print("🧠 Tokenizing chunks...")
-    tokenized_chunks = [chunk.split() for chunk in chunks]
-    bm25 = BM25Okapi(tokenized_chunks)
+    print("🤖 Loading embedding model...")
+    model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
+    print("🔢 Encoding chunks into embeddings...")
+    embeddings = model.encode(chunks, show_progress_bar=True)
+    embeddings = np.array(embeddings).astype("float32")
+
+    print("🔄 Normalizing embeddings for cosine similarity...")
+    faiss.normalize_L2(embeddings)  #Essential for cosine similarity (magnituded)
+
+    print("🧠 Building FAISS index with cosine similarity...")
+    dim = embeddings.shape[1]
+    #index = faiss.IndexFlatL2(dim) # Eucledean distance 
+    index = faiss.IndexFlatIP(dim)  # Inner product works as cosine similarity after normalization
+    index.add(embeddings)
 
     print("💾 Saving index and metadata...")
-    with open(bm25_path, "wb") as f:
-        pickle.dump(bm25, f)
-
-    save_json(chunks, "bm25_corpus.json")
-    save_json(chunk_meta, "bm25_metadata.json")
+    faiss.write_index(index, index_path)
+    save_json(chunks, "dense_corpus.json")
+    save_json(chunk_meta, "dense_metadata.json")
     save_json(raw_docs, "raw_corpus.json")
     save_json(raw_meta, "raw_metadata.json")
 
-    print("✅ BM25 index built and saved.")
+    print("✅ Dense index built and saved.")
 
-# Run if this file is executed directly
 if __name__ == "__main__":
     build()
+
