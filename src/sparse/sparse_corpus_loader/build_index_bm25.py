@@ -28,8 +28,8 @@ def build():
     chunks, chunk_meta = preprocess(
         raw_docs,
         raw_meta,
-        max_tokens=400,
-        overlap=30
+        max_words=270,  # max tokens no lemma or max word with lemma
+        overlap=40
     )
 
     print("🧠 Tokenizing chunks...")
