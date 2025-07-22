@@ -139,14 +139,6 @@ if __name__ == "__main__":
 
 
 
-
-
-
-
-
-
-
-
 #DOES NOT HAVE LEMMATIZATION
 
 #!/usr/bin/env python
