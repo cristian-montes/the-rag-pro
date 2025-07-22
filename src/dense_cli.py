@@ -7,9 +7,9 @@ Lightweight CLI for local Q&A that:
 """
 
 import os, re, textwrap, json
-from retrieval import retrieve
+from dense.retrieval import retrieve
 from load_mistral import load as load_llm
-from corpus_loader.build_index import build
+from dense.dense_corpus_loader.build_index import build
 
 # Import sklearn stopwords for query cleaning
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
@@ -60,11 +60,10 @@ def ensure_ready():
 
     print("\n🔍 Checking for existing data and indexes...")
 
-    bm25_path = os.path.join(INDEX_DIR, "bm25.pkl")
-    faiss_path = os.path.join(INDEX_DIR, "faiss.idx")
+    faiss_path = os.path.join(INDEX_DIR, "dense_index.idx")
 
-    if not os.path.exists(bm25_path) or not os.path.exists(faiss_path):
-        print("🔧 Index files not found. Building indexes...")
+    if not os.path.exists(faiss_path):
+        print("🔧 FAISS Index file not found. Building indexes...")
         build()  # This calls load_all_data() internally
         print("✅ All indexes built.\n")
     else:

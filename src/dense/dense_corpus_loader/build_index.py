@@ -3,8 +3,8 @@ import json
 import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
-from corpus_loader.load_all_data import load_all_data
-from corpus_loader.preprocess import preprocess
+from corpus_preloader.load_all_data import load_all_data
+from dense.dense_corpus_loader.preprocess import preprocess
 
 INDEX_DIR = "index"
 os.makedirs(INDEX_DIR, exist_ok=True)
