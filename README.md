@@ -48,7 +48,6 @@ This script will:
 
 * Create and activate a Conda environment based on `environment.yml`
 * Install necessary Python dependencies (e.g., `llama-cpp-python`, `chromadb`, `faiss-cpu`, `scikit-learn`, `spacy`, etc.)
-* Download any required NLP models (if applicable)
 
 > If environment creation fails, the script will stop and print an error so the user can investigate before retrying.
 
@@ -80,14 +79,14 @@ the-rag-pro/
 
 ```bash
 conda activate rag-pro
-python src/sparse_cli.py --query "What is vector search?"
+python src/sparse_cli.py --query "Who owns the Moon?"
 ```
 
 ### Dense Retriever Example
 
 ```bash
 conda activate rag-pro
-python src/dense_cli.py --query "Tell me about retrieval models."
+python src/dense_cli.py --query "how old is the hubble space telescope?"
 ```
 
 > You can modify the indexed documents and embeddings inside the `src/` folder for your use case.
