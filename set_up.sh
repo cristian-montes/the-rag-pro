@@ -1,50 +1,51 @@
 #!/bin/bash
 
-echo "🔧 Starting setup for the-rag-pro on MacOS (M-series)..."
+set -e  # Exit on first error
+set -o pipefail
 
-# Step 1: Confirm Conda is available
-if ! command -v conda &> /dev/null
-then
-    echo "❌ Conda is not installed. Please install Miniconda or Anaconda first."
-    exit 1
+echo "🔧 Starting setup for the-rag-pro on macOS (M-series)..."
+
+# Get env name from environment.yml
+ENV_NAME=$(grep '^name:' environment.yml | awk '{print $2}')
+
+if [ -z "$ENV_NAME" ]; then
+  echo "❌ Could not determine environment name from environment.yml"
+  exit 1
 fi
 
-# Step 2: Create conda environment
+echo "📦 Checking for existing conda environment: $ENV_NAME..."
+if conda info --envs | grep -q "^$ENV_NAME[[:space:]]"; then
+  echo "🧹 Removing existing environment '$ENV_NAME'..."
+  conda env remove -n "$ENV_NAME"
+fi
+
 echo "📦 Creating conda environment from environment.yml..."
-conda env create -f environment.yml --force
-
-# Step 3: Activate environment
-echo "✅ Environment created. You can activate it using:"
-echo ""
-echo "   conda activate rag-pro"
-echo ""
-
-# Step 4: Create models directory if needed
-MODEL_DIR="models"
-mkdir -p "$MODEL_DIR"
-
-# Step 5: Download Mistral model if not already there
-MODEL_NAME="mistral-7b-instruct-v0.2.Q4_K_M.gguf"
-MODEL_URL="https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/$MODEL_NAME"
-MODEL_PATH="$MODEL_DIR/$MODEL_NAME"
-
-if [ -f "$MODEL_PATH" ]; then
-    echo "✅ Model already downloaded: $MODEL_PATH"
-else
-    echo "⬇️  Downloading Mistral model..."
-    curl -L -o "$MODEL_PATH" "$MODEL_URL"
-
-    if [ $? -ne 0 ]; then
-        echo "❌ Failed to download model. Please check the URL or your internet connection."
-        exit 1
-    else
-        echo "✅ Model downloaded to $MODEL_PATH"
-    fi
+if ! conda env create --file environment.yml; then
+  echo "❌ Failed to create the conda environment '$ENV_NAME'."
+  echo "💡 Please check that your environment.yml is valid and try again."
+  exit 1
 fi
 
-echo "🎉 Setup complete! You can now activate the environment and run your project:"
-echo ""
-echo "   conda activate rag-pro"
-echo "   python src/dense/cli.py --help"
+echo "✅ Conda environment '$ENV_NAME' created successfully."
 
-echo "🧠 Make sure your CLI script is pointed to use the local model at $MODEL_DIR/$MODEL_FILE"
+echo "📥 Installing spaCy model en_core_web_sm..."
+conda run -n "$ENV_NAME" python -m spacy download en_core_web_sm
+
+echo "📁 Setting up model directory..."
+mkdir -p model
+
+# If the model doesn't exist, download it
+MODEL_NAME="mistral-7b-instruct-v0.2.Q4_K_M.gguf"
+MODEL_PATH="model/$MODEL_NAME"
+
+if [ ! -f "$MODEL_PATH" ]; then
+  echo "⬇️  Downloading Mistral model: $MODEL_NAME"
+  curl -L -o "$MODEL_PATH" https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/$MODEL_NAME
+else
+  echo "✅ Model already exists at $MODEL_PATH"
+fi
+
+echo "✅ Setup complete. Activate the environment with:"
+echo ""
+echo "    conda activate $ENV_NAME"
+echo ""
