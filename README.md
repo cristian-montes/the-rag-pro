@@ -2,18 +2,30 @@
 
 ## Project Overview
 
-**The RAG Pro** is a Retrieval-Augmented Generation (RAG) prototype that utilizes a local Large Language Model (LLM) to answer questions based on a custom indexed document corpus. It combines both sparse and dense retrieval techniques for optimal performance.
+**The RAG Pro** is a Retrieval-Augmented Generation (RAG) prototype that utilizes a local Large Language Model (LLM) to answer questions based on a custom indexed document corpus. It provides the avility to run either spare or dense retrival.
+
+
+
+## Corpus Information
+
+This project indexes and retrieves from specialized technical and historical documents, including:
+
+1. [Archaeology, Anthropology, and Interstellar Communication (NASA)](https://www.nasa.gov/wp-content/uploads/2015/01/Archaeology_Anthropology_and_Interstellar_Communication_TAGGED.pdf?emrc=9e061d)  
+2. [Governing the Moon (NASA SP-2024-4559)](https://www.nasa.gov/wp-content/uploads/2025/02/governing-the-moon-sp-2024-4559-ebook.pdf?emrc=686dfb5c7fb7d)  
+3. [Rockets and People Volume 4 (NASA)](https://www.nasa.gov/wp-content/uploads/2015/04/621513main_rocketspeoplevolume4-ebook.pdf?emrc=4d370f)  
+
+---
 
 This implementation uses **Mistral 7B Instruct (v0.2.Q4\_K\_M.gguf)** model via `llama-cpp-python`. It is currently specialized in handling local document search and question answering, making it suitable for building personalized search or Q\&A systems.
 
-> ⚠️ This project is designed specifically for **MacOS M Series (Apple Silicon)** machines. You must have **Conda or Miniconda** installed prior to running the setup script.
+> ⚠️ This setup is tailored for Apple Silicon (M1/M2/M3) Macs and is optimized for local environments using `uv` for dependency management.
 
 ---
 
 ## Features
 
 * Local LLM with no external API calls
-* Retrieval-augmented pipeline with both sparse (BM25) and dense (embedding-based) retrievers
+* Retrieval-augmented pipeline with both sparse (BM25) or dense (embedding-based) retrievers
 * CLI for running queries against indexed documents
 
 ---
@@ -21,7 +33,7 @@ This implementation uses **Mistral 7B Instruct (v0.2.Q4\_K\_M.gguf)** model via 
 ## Requirements
 
 * MacOS with Apple M Series (M1/M2/M3) CPU
-* Conda or Miniconda installed
+* Astral UV installed
 * 8GB+ RAM recommended for model inference
 
 ---
@@ -40,8 +52,8 @@ cd the-rag-pro
 Make sure Conda is installed and accessible in your shell. Then, run:
 
 ```bash
-chmod +x setup.sh
-./setup.sh
+chmod +x uv_setup.sh
+./uv_setup.sh
 ```
 
 This script will:
@@ -65,7 +77,7 @@ the-rag-pro/
 │   ├── dense_cli.py        # Alternative CLI using dense retriever
 │   └── ...
 ├── environment.yml         # Conda environment file
-├── setup.sh                # Project setup script
+├── uv_setup.sh                # Project setup script
 └── README.md               # You are here
 ```
 
@@ -79,14 +91,21 @@ the-rag-pro/
 
 ```bash
 conda activate rag-pro
-python src/sparse_cli.py --query "Who owns the Moon?"
+python src/sparse_cli.py --query "How do the Artemis Accords impact lunar governance?"
 ```
 
 ### Dense Retriever Example
 
 ```bash
 conda activate rag-pro
-python src/dense_cli.py --query "how old is the hubble space telescope?"
+python src/dense_cli.py --query "Summarize the challenges associated with resource extraction on the Moon as presented in the document"
+```
+
+### To Stop or Exit 
+
+```bash
+conda activate rag-pro
+python src/dense_cli.py --query "exit"
 ```
 
 > You can modify the indexed documents and embeddings inside the `src/` folder for your use case.
