@@ -47,21 +47,26 @@ git clone https://github.com/your-username/the-rag-pro.git
 cd the-rag-pro
 ```
 
-### 2. Run the Setup Script
 
-Make sure Conda is installed and accessible in your shell. Then, run:
+### 2. Sync Project Dependencies
 
 ```bash
-chmod +x uv_setup.sh
-./uv_setup.sh
+uv sync
 ```
 
-This script will:
+### 3. Run the set_up.sh for extra Project Dependencies
 
-* Create and activate a Conda environment based on `environment.yml`
-* Install necessary Python dependencies (e.g., `llama-cpp-python`, `chromadb`, `faiss-cpu`, `scikit-learn`, `spacy`, etc.)
+```bash
+bash set_up.sh
+```
 
-> If environment creation fails, the script will stop and print an error so the user can investigate before retrying.
+ `set_up.sh` ensures:
+
+- `pip` is installed in the virtual environment (sometimes missing after `uv sync`)  
+- The `spaCy` language model `en_core_web_sm` is downloaded and ready for use  
+- The Mistral 7B GGUF model file is present locally for inference
+
+
 
 ---
 
@@ -90,21 +95,21 @@ the-rag-pro/
 ### Sparse Retriever Example
 
 ```bash
-conda activate rag-pro
+
 python src/sparse_cli.py --query "How do the Artemis Accords impact lunar governance?"
 ```
 
 ### Dense Retriever Example
 
 ```bash
-conda activate rag-pro
+
 python src/dense_cli.py --query "Summarize the challenges associated with resource extraction on the Moon as presented in the document"
 ```
 
 ### To Stop or Exit 
 
 ```bash
-conda activate rag-pro
+
 python src/dense_cli.py --query "exit"
 ```
 

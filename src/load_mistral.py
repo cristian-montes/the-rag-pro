@@ -4,10 +4,6 @@ Local llama.cpp loader tuned for speed on Apple-silicon (M-series).
 import os
 from llama_cpp import Llama
 
-# _DEFAULT_PATH = os.getenv("LLAMA_MODEL_PATH",
-#     "/Users/cristianmontes/Documents/dev/llama.cpp/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf")
-# _instance=None
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 _DEFAULT_PATH = os.getenv(
     "LLAMA_MODEL_PATH",

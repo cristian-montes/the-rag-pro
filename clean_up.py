@@ -44,6 +44,9 @@ if __name__ == "__main__":
         "src/dense/dense_corpus_loader/__pycache__",
         "src/sparse/__pycache__",
         "src/sparse/sparse_corpus_loader/__pycache__",
+        "src/corpus_preloader/__pycache__",
+        "src/corpus_preloader/future_scripts_impl/__pycache__",
+
     ]
 
     dry_run = False  # Set to False to actually delete files
