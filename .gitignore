@@ -1,1 +1,10 @@
 .env
+.venv
+uv.lock
+
+
+/data
+/dubug
+/eval/results
+/model
+/index
