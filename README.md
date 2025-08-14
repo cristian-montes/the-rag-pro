@@ -99,21 +99,22 @@ the-rag-pro/
 
 ```bash
 
-python src/sparse_cli.py --query "How do the Artemis Accords impact lunar governance?"
+uv run src/sparse_cli.py
 ```
 
 ### Dense Retriever Example
 
 ```bash
 
-python src/dense_cli.py --query "Summarize the challenges associated with resource extraction on the Moon as presented in the document"
+uv run src/dense_cli.py
 ```
 
 ### To Stop or Exit 
 
 ```bash
 
-python src/dense_cli.py --query "exit"
+uv run src/dense_cli.py
+query: "exit"
 ```
 
 > You can modify the indexed documents and embeddings inside the `src/` folder for your use case.
