@@ -81,8 +81,11 @@ the-rag-pro/
 │   ├── sparse_cli.py       # CLI script for querying documents
 │   ├── dense_cli.py        # Alternative CLI using dense retriever
 │   └── ...
-├── environment.yml         # Conda environment file
-├── uv_setup.sh                # Project setup script
+├── eval/
+│   ├── semantic_costum_eval.py       # Semanthic Similary Evaluation agains golden answers
+│   ├── eval_golde_qa.json       # golden answers and chunks
+│   └── ...
+├── set_up.sh                # Project setup script
 └── README.md               # You are here
 ```
 
