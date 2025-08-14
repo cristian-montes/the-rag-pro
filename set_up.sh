@@ -3,19 +3,16 @@
 set -e
 set -o pipefail
 
-echo " Setting up only critical dependencies: pip, spaCy model, and Mistral weights..."
+echo "🔧 Setting up only critical dependencies: pip, spaCy model, and Mistral weights..."
 
-# 🛠 Ensure pip is available
-echo "🧪 Ensuring pip is installed in the current Python environment..."
-python -m ensurepip --upgrade
 
 #  Install spaCy model only if not already downloaded
 echo " Checking for spaCy language model: en_core_web_sm..."
 if ! python -c "import spacy; spacy.load('en_core_web_sm')" &> /dev/null; then
-  echo " Downloading spaCy model: en_core_web_sm..."
+  echo "🌐 Downloading spaCy model: en_core_web_sm..."
   python -m spacy download en_core_web_sm
 else
-  echo "spaCy model already installed."
+  echo "✅ spaCy model already installed."
 fi
 
 #  Ensure model directory exists

@@ -30,7 +30,7 @@ def load_nasa_data():
 # Aggregator: load all sources and combine their outputs
 def load_all_data():
     """
-    Load all datasets: PDFs, CSVs, Wikipedia, and optionally NASA.
+    Load all datasets: PDFs, and Wikipedia.
     Returns:
         Tuple[List[str], List[dict]]: corpus texts and their metadata
     """

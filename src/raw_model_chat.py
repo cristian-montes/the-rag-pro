@@ -1,31 +1,40 @@
 from llama_cpp import Llama
 
-# Path to your quantized Mistral GGUF model
 MODEL_PATH = "/Users/cristianmontes/Documents/dev/llama.cpp/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 
-# Initialize the LLM
 llm = Llama(
     model_path=MODEL_PATH,
-    n_ctx=2048,
-    n_threads=4,      # Adjust based on your CPU
-    n_batch=128,
+    n_ctx=8192,
+    n_threads=8,
+    n_gpu_layers=-1,
+    n_batch=512,
     verbose=True
 )
 
 # Chat loop
-print("💬 Mistral Chat is ready! Type your question (or 'exit' to quit).")
+print("💬 Mistral Chat is ready! Type your question, press enter, then paste your long text.")
+print("Type 'END' on a new line to finish your input (or 'exit' to quit the chat).")
 
 while True:
-    user_input = input("\n❓ You: ").strip()
-    if user_input.lower() in {"exit", "quit"}:
+    user_input_lines = []
+    print("\n❓ You:")
+    while True:
+        line = input()
+        if line.lower() == "end":
+            break
+        user_input_lines.append(line)
+    
+    user_input = "\n".join(user_input_lines)
+    
+    if user_input.lower().strip() in {"exit", "quit"}:
         print("👋 Exiting.")
         break
-
+        
     prompt = f"<|system|>\nYou are a helpful assistant.\n<|user|>\n{user_input}\n<|assistant|>\n"
 
     output = llm(
         prompt=prompt,
-        max_tokens=256,
+        max_tokens=2048,
         temperature=0.7,
         top_p=0.9,
         stop=["</s>", "<|user|>"]
