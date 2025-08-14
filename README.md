@@ -57,7 +57,7 @@ uv sync
 ### 3. Run the set_up.sh for extra Project Dependencies
 
 ```bash
-bash set_up.sh
+uv run bash set_up.sh
 ```
 
  `set_up.sh` ensures:
